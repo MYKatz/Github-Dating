@@ -130,7 +130,6 @@ def authorized(oauth_token):
     g.user = user
     github_user = github.get('/user')
     user.github_id = github_user['id']
-    user.id = github_user['id']
     user.github_login = github_user['login']
     user.name = github_user["name"]
     user.org = github_user["company"]
@@ -155,7 +154,11 @@ def authorized(oauth_token):
     
     db_session.commit()
 
-
+    #dumb hack to get user ids to work.
+    #TODO: make this better... sometime
+    usr = User.query.filter_by(github_id=g.user.github_id).first()
+    g.user = usr
+    session['user_id'] = usr.id
 
     return redirect(next_url)
 
