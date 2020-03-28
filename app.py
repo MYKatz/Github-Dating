@@ -95,7 +95,6 @@ def authorized(oauth_token):
     user = User.query.filter_by(github_access_token=oauth_token).first()
     if user is None:
         user = User(oauth_token)
-        db_session.add(user)
 
     user.github_access_token = oauth_token
 
@@ -104,6 +103,17 @@ def authorized(oauth_token):
     user.github_id = github_user['id']
     user.github_login = github_user['login']
 
+    #check to see if this user already 
+    check_user = User.query.filter_by(github_id=user.github_id).first() #github id should also be unique :)
+    if check_user is None:
+        db_session.add(user)
+    else:
+        #we don't actually add the new user object if a previous user with this ID exists
+        check_user.github_access_token = oauth_token
+
+    
+    #db_session.add(user) this may only be necessary in certain situations
+    
     db_session.commit()
 
     session['user_id'] = user.id
