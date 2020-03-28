@@ -4,7 +4,10 @@ from flask import Flask, request, url_for, g, session, redirect
 from flask import render_template_string, jsonify
 from flask_github import GitHub #Github authentication
 
+from base64 import b64decode
+
 from vars import *
+from utils import remove_non_alphanumeric
 
 app = Flask(__name__)
 
@@ -80,8 +83,8 @@ def index():
 
 @app.route("/test")
 def test():
-    user = get_repos()
-    return str(user)
+    repos = get_repos()
+    return make_doc_from_repos(repos)
 
 
 @app.route('/profile')
@@ -138,7 +141,31 @@ def authorized(oauth_token):
 
 def get_repos():
     github_user = github.get('/user')
-    return github_user
+    repos = github.get(github_user["repos_url"])
+    return [repo["url"] for repo in repos]
+
+
+def make_doc_from_repos(repos):
+    """ Makes one cohesive document from the readmes of a list of links to repos """
+
+    out = ''
+
+    for repo_url in repos:
+        print(f'{repo_url}/readme')
+        try:
+            readme = github.get(f'{repo_url}/readme')
+        except:
+            continue
+        if readme["content"]:
+            content_no_newlines = readme["content"].replace("\n", "")
+            content_markdown = str(b64decode(content_no_newlines))
+            content_text = remove_non_alphanumeric(content_markdown)
+            print(content_text)
+            out += content_text #could make this more efficient by collecting it in a list, then joining
+
+    return out
+
+        
 
 
 
