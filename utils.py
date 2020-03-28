@@ -3,6 +3,7 @@
 from markdown import Markdown
 from io import StringIO
 
+
 import string
 
 #non-alphanumeric characters
@@ -11,3 +12,4 @@ def remove_non_alphanumeric(s):
     """Takes markdown string and strips it of its formatting"""
 
     return s.translate(str.maketrans("","",badchars)).replace("\\n", "\n")
+
