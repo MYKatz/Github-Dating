@@ -17,7 +17,7 @@ app.config["DEBUG"] = True
 github = GitHub(app)
 
 #Database setup
-from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy import create_engine, Column, Integer, String, Table
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -30,9 +30,6 @@ Base = declarative_base()
 Base.query = db_session.query_property()
 
 
-def init_db():
-    Base.metadata.create_all(bind=engine)
-
 
 #User shcema for db
 #TODO: actually make this. Should include some way to store feature vector
@@ -43,12 +40,17 @@ class User(Base):
     github_access_token = Column(String(255))
     github_id = Column(Integer)
     github_login = Column(String(255))
+    name = Column(String(255))
+    org = Column(String(255))
+    blog = Column(String(255))
+    email = Column(String(255))
 
     def __init__(self, github_access_token):
         self.github_access_token = github_access_token
 
 
-
+def init_db():
+    Base.metadata.create_all(bind=engine)
 
 @app.before_request
 def before_request():
@@ -76,6 +78,12 @@ def token_getter():
 def index():
     return 'Hello, World!'
 
+@app.route("/test")
+def test():
+    user = get_repos()
+    return str(user)
+
+
 @app.route('/profile')
 def getProfile():
     return f"You are github user #{str(g.user.github_id)}"
@@ -102,23 +110,37 @@ def authorized(oauth_token):
     github_user = github.get('/user')
     user.github_id = github_user['id']
     user.github_login = github_user['login']
+    user.name = github_user["name"]
+    user.org = github_user["company"]
+    user.blog = github_user["blog"]
+    user.email = github_user["email"]
 
     #check to see if this user already 
     check_user = User.query.filter_by(github_id=user.github_id).first() #github id should also be unique :)
     if check_user is None:
         db_session.add(user)
+        session['user_id'] = user.id
     else:
         #we don't actually add the new user object if a previous user with this ID exists
         check_user.github_access_token = oauth_token
+        g.user = check_user
+        session['user_id'] = check_user.id
+
 
     
     #db_session.add(user) this may only be necessary in certain situations
     
     db_session.commit()
 
-    session['user_id'] = user.id
-
     return redirect(next_url)
+
+# Github utils
+
+def get_repos():
+    github_user = github.get('/user')
+    return github_user
+
+
 
 if __name__ == "__main__":
     init_db()
