@@ -14,8 +14,7 @@ def remove_non_alphanumeric(s):
     return s.translate(str.maketrans("","",badchars)).replace("\\n", "\n")
 
 def form_language_feature_vector(langs):
-    """ Create a language feature vector from an array of languages. We """
-    print(langs)
+    """ Create a language feature vector from an array of languages. We normalize this vector so that all elements sum to 1 """
     #top 20 most popular programming languages + HTML, CSS
     lang_to_ind = {
         "javascript": 0,

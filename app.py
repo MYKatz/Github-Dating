@@ -23,7 +23,7 @@ app.config["DEBUG"] = True
 github = GitHub(app)
 
 #Database setup
-from sqlalchemy import create_engine, Column, Integer, String, Table
+from sqlalchemy import create_engine, Column, Integer, String, Table, Binary
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -50,6 +50,7 @@ class User(Base):
     org = Column(String(255))
     blog = Column(String(255))
     email = Column(String(255))
+    embedding = Column(Binary)
 
     def __init__(self, github_access_token):
         self.github_access_token = github_access_token
@@ -84,9 +85,24 @@ def token_getter():
 def index():
     return 'Hello, World!'
 
-@app.route("/test")
-def test():
-    return str(make_feature_vectors())
+@app.route("/makefeatures")
+def makefeatures():
+    try:
+        user = User.query.filter_by(github_id=g.user.github_id).first()
+        if user.embedding:
+            return "User already has embedding"
+        features = make_feature_vectors()
+        user.embedding = features.tobytes() #convert to binary data format
+        db_session.commit()
+        return "Successfully generated feature vector"
+    except:
+        return "Feature vector generation failed"
+
+@app.route("/getfeatures")
+def getfeatures():
+    user = User.query.filter_by(github_id=g.user.github_id).first()
+    if user.embedding:
+        return str(np.frombuffer(user.embedding))
 
 
 @app.route('/profile')
@@ -114,6 +130,7 @@ def authorized(oauth_token):
     g.user = user
     github_user = github.get('/user')
     user.github_id = github_user['id']
+    user.id = github_user['id']
     user.github_login = github_user['login']
     user.name = github_user["name"]
     user.org = github_user["company"]
@@ -122,7 +139,8 @@ def authorized(oauth_token):
 
     #check to see if this user already 
     check_user = User.query.filter_by(github_id=user.github_id).first() #github id should also be unique :)
-    if check_user is None:
+    if not check_user:
+        g.user = user
         db_session.add(user)
         session['user_id'] = user.id
     else:
@@ -136,6 +154,8 @@ def authorized(oauth_token):
     #db_session.add(user) this may only be necessary in certain situations
     
     db_session.commit()
+
+
 
     return redirect(next_url)
 
