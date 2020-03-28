@@ -21,7 +21,7 @@ def train_if_not_exist():
     """ Trains doc2vec model (if one already doesn't exist) and saves it to disk """
     if not os.path.exists(model_path):
         documents = [TaggedDocument(doc, [i]) for i, doc in enumerate(common_texts)]
-        model = Doc2Vec(documents, vector_size=128, window=2, min_count=1, workers=4, epochs=10000)
+        model = Doc2Vec(documents, vector_size=64, window=2, min_count=1, workers=4, epochs=10000)
         model.save(model_path)
 
 if __name__ == "__main__":

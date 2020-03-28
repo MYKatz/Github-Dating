@@ -4,10 +4,13 @@ from flask import Flask, request, url_for, g, session, redirect
 from flask import render_template_string, jsonify
 from flask_github import GitHub #Github authentication
 
+import numpy as np
+
 from base64 import b64decode
 
 from vars import *
-from utils import remove_non_alphanumeric
+from utils import remove_non_alphanumeric, form_language_feature_vector
+from doc2vec import doc2vec
 
 app = Flask(__name__)
 
@@ -83,8 +86,7 @@ def index():
 
 @app.route("/test")
 def test():
-    repos = get_repos()
-    return make_doc_from_repos(repos)
+    return str(make_feature_vectors())
 
 
 @app.route('/profile')
@@ -137,12 +139,14 @@ def authorized(oauth_token):
 
     return redirect(next_url)
 
-# Github utils
+# Github/user data utils
 
 def get_repos():
+    """ Returns a list of repo urls and a list of main languages for those repos """
+
     github_user = github.get('/user')
     repos = github.get(github_user["repos_url"])
-    return [repo["url"] for repo in repos]
+    return [repo["url"] for repo in repos], [repo["language"] for repo in repos]
 
 
 def make_doc_from_repos(repos):
@@ -151,7 +155,6 @@ def make_doc_from_repos(repos):
     out = ''
 
     for repo_url in repos:
-        print(f'{repo_url}/readme')
         try:
             readme = github.get(f'{repo_url}/readme')
         except:
@@ -160,12 +163,18 @@ def make_doc_from_repos(repos):
             content_no_newlines = readme["content"].replace("\n", "")
             content_markdown = str(b64decode(content_no_newlines))
             content_text = remove_non_alphanumeric(content_markdown)
-            print(content_text)
             out += content_text #could make this more efficient by collecting it in a list, then joining
 
     return out
 
-        
+def make_feature_vectors():
+    repos, langs = get_repos()
+    big_doc = make_doc_from_repos(repos) #concatenated readmes
+
+    lang_features = form_language_feature_vector(langs)
+    readme_features = doc2vec(big_doc)
+
+    return np.concatenate((readme_features, lang_features))
 
 
 

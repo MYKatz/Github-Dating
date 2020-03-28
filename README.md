@@ -6,6 +6,7 @@ Made for Winhacks 2020, by Matthew Katz and Galaxia Wu
 ## Getting up and running
 
 Run app.py once in python to initialize the DB
+Run doc2vec.py once to initialize our doc2vec model
 
 Then use flask run to run the flask server
 
