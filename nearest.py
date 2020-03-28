@@ -9,7 +9,7 @@ import os
 from annoy import AnnoyIndex
 
 from vars import DATABASE_URI
-from app import User
+from schemas import User
 
 engine = create_engine(DATABASE_URI) #from vars
 db_session = scoped_session(sessionmaker(autocommit=False,
