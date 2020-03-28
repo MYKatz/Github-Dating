@@ -38,7 +38,6 @@ Base.query = db_session.query_property()
 
 
 #User shcema for db
-#TODO: actually make this. Should include some way to store feature vector
 class User(Base):
     __tablename__ = 'users'
 
@@ -54,6 +53,22 @@ class User(Base):
 
     def __init__(self, github_access_token):
         self.github_access_token = github_access_token
+
+class Pair(Base):
+    __tablename__ = 'pairs'
+
+    hash = Column(String(32), primary_key=True)
+    user_1 = Column(Integer)
+    user_2 = Column(Integer)
+    u1_liked = Column(Integer)
+    u2_liked = Column(Integer)
+
+    def __init__(self, u1, u2):
+        self.user_1 = u1
+        self.user_2 = u2
+        self.u1_liked = 0
+        self.u2_liked = 0
+        self.hash = hash(f'{min(u1, u2)}-{max(u1, u2)}') #lower one always first
 
 
 def init_db():

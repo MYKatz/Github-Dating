@@ -26,3 +26,17 @@ CREATE TABLE users (
     github_login VARCHAR(255)
 )
 ```
+
+### Pairs (potential matches)
+
+```sql
+CREATE TABLE pairs (
+    hash VARCHAR(32) PRIMARY KEY, --hash of ("{min(id1, id2)}-{max(id1, id2)}"), should be unique
+    user_1 Integer, --user ids
+    user_2 Integer,
+    u1_liked Integer -- 0 for not seen yet, -1 for dislike, 1 for like
+    u2_liked Integer -- same as above
+)
+```
+
+There will undoubtedly be collisions but oh well :shrug:
