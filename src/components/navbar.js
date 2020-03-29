@@ -10,6 +10,8 @@ import {
 
 import styled from 'styled-components';
 
+import WordMark from '../img/wordmark.png'
+
 const Navtext = styled.span`
     margin-right: 32px;
     text-align: left;
@@ -23,7 +25,7 @@ const MyNavbar = (props) => {
   return (
     <Navbar dark style={{display: "block"}}>
         <Nav className="justify-content-between py-2">
-            <NavbarBrand className="mr-3">Github Dating</NavbarBrand>
+            <NavbarBrand className="mr-3"><img src={WordMark} style={{height:"44px"}}/></NavbarBrand>
             {!props.loggedIn 
               ? <a href="http://localhost:5000/login"><NavbarText className="mr-2">Login</NavbarText></a>
               : <NavbarText className="mr-2">Howdy, {props.username}!</NavbarText>

@@ -11,8 +11,9 @@ import GithubButton from 'react-github-login-button'
 
 
 import Navbar from "./components/navbar";
-import ProfCard from "./components/profile_card";
+import SwipeView from "./components/swipeview";
 import MyProfile from "./components/my_profile";
+import Sidebar from "./components/sidebar";
 
 function Login() {
   return(
@@ -55,13 +56,15 @@ function App() {
       <Navbar loggedIn={isLoggedIn} username={username}/>
       <Container fluid={true} className="container" style={{maxWidth: "100vw", flex: 1}}>
         <Row className="height-full">
-          <Col xs="3" className="sidebar">Hello</Col>
+          <Col xs="3" className="sidebar">
+            <Sidebar />
+          </Col>
           <Col xs="auto" style={{flex: 1}} className="centercontainer">
 
               <div className="center maincard" style={{height: "70%", width: "80%", marginBottom: "3vh"}}>
 
                 {!isLoggedIn && <Login />}
-                {isLoggedIn && user.onboarded && <ProfCard githubId={"23515048"} />}
+                {isLoggedIn && user.onboarded && <SwipeView githubId={"23515048"} />}
                 {isLoggedIn && !user.onboarded && <MyProfile githubId={"23515048"} /> }
 
               </div>

@@ -51,17 +51,17 @@ const ProfileCard = (props) => {
         }
     
         fetchData();
-      }, []);
+      }, [props.githubId]);
 
     return (
         <div className="my-2 mx-2">
             <Row>
                 <Col xs="5" style={{wordWrap: "break-word"}}>
-                    <div className="mt-5 mx-3 ml-5">
+                    <div className="mt-3 mx-3 ml-5">
                         <img src={profile.avatar} className="profileimage"/>
                         
                         <div className="mt-2">
-                            <span className="profilecardname">Matt Katz</span>
+                            <span className="profilecardname">{profile.name}</span>
                         </div>
 
                         <div className="mt-2">
@@ -76,7 +76,7 @@ const ProfileCard = (props) => {
                     </div>
                 </Col>
                 <Col>
-                    <div className="mt-5 mx-2 ml-1"> 
+                    <div className="mt-3 mx-2 ml-1"> 
                         <span className="profilesmalldetails" style={{fontWeight: 700}}> Pinned </span>
                         {
                             featured.map((repo, index) =>
@@ -84,7 +84,7 @@ const ProfileCard = (props) => {
                             )
                         }
 
-                        <Heart style={{float: "right"}} className="pointer"/> <X style={{float: "right"}} className="pointer" />
+                        <Heart style={{float: "right"}} className="pointer" onClick={props.onYes}/> <X style={{float: "right"}} onClick={props.onNo} className="pointer" />
                     </div>
 
                     

@@ -32,6 +32,9 @@ const ProfileCard = (props) => {
 
     const [profile, setProfile] = useState({});
     const [featured, setFeatured] = useState([]);
+    const [hasSubmitted, setHS] = useState(false);
+
+    let textInput = null;
 
     useEffect(() => {
         async function fetchData() {
@@ -93,9 +96,12 @@ const ProfileCard = (props) => {
                             <InputGroup>
                                 <InputGroupAddon addonType="prepend">
                                 </InputGroupAddon>
-                                <Input placeholder="Discord username" />
+                                <Input placeholder="Discord tag" innerRef={(input) => { textInput = input; }}/>
                             </InputGroup>
-                            <Button color="primary" className="mt-3 float-right"> Submit </Button>{' '}
+                            { hasSubmitted
+                            ? <span className="float-right">Loading... please wait a moment</span>
+                            : <Button color="primary" className="mt-3 float-right" onClick={() => _buttonPressed(textInput, setHS)}> Submit </Button>
+                            }
                         </div>
                         
                     </div>
@@ -107,5 +113,14 @@ const ProfileCard = (props) => {
     )
 
 }
+
+async function _buttonPressed(textInput, setHS) {
+    setHS(true);
+    var resp = await (await fetch(`/onboard/${textInput.value.replace("#", "_HASHTAG_")}`)).text()
+    alert(resp);
+    window.location.reload(false); //dumb hack
+}
+
+
 
 export default ProfileCard;
