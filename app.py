@@ -81,6 +81,7 @@ def getfeatures():
         return str(np.frombuffer(user.embedding))
 
 @app.route('/swipe/<pair_id>/<like>', methods=['GET', 'POST']) #later turn this into just a post route
+#TODO: test this!
 def swipe(pair_id, like):
     liked = 1 if (like == "true") else -1 #sort of a boolean lol
     if not g.user:
