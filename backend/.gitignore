@@ -1,0 +1,9 @@
+#Python stuff
+env
+__pycache__
+
+#Environment vars -- do not share!
+vars.py
+
+#Doc2Vec model
+model
