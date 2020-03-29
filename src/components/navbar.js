@@ -27,7 +27,7 @@ const MyNavbar = (props) => {
         <Nav className="justify-content-between py-2">
             <NavbarBrand className="mr-3"><img src={WordMark} style={{height:"44px"}}/></NavbarBrand>
             {!props.loggedIn 
-              ? <a href="http://localhost:5000/login"><NavbarText className="mr-2">Login</NavbarText></a>
+              ? <a href="/login"><NavbarText className="mr-2">Login</NavbarText></a>
               : <NavbarText className="mr-2">Howdy, {props.username}!</NavbarText>
             }
         </Nav>

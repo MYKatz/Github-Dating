@@ -20,7 +20,7 @@ function Login() {
     <div className="text-center centercontainer">
       <div className="center text-center">
         <h1>Please log in with Github to continue</h1>
-        <a href="http://localhost:5000/login">
+        <a href="/login">
           <GithubButton style={{marginLeft: "25px"}}/>
         </a>
       </div>
