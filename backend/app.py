@@ -61,6 +61,19 @@ def token_getter():
 def index():
     return 'Hello, World!'
 
+@app.route('/currentuser')
+def get_current_user():
+    if not g.user:
+        return jsonify({
+            "loggedIn": False
+        })
+
+    return jsonify({
+        "loggedIn": (g.user is not None),
+        "name": g.user.name,
+        "id": g.user.id
+    })
+
 @app.route("/makefeatures")
 def makefeatures():
     try:
