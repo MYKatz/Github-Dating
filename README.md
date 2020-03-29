@@ -5,7 +5,7 @@ Made for Winhacks 2020, by Matthew Katz and Galaxia Wu
 
 ## Getting up and running
 
-Run app.py once in python to initialize the DB
+Run app.py once in python to initialize the DB. You'll need to comment out the "import nearest" (currently line 17). Why? Because Matthew Katz is a clown.
 
 Run doc2vec.py once to initialize our doc2vec model
 

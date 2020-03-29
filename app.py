@@ -27,7 +27,7 @@ app.config["DEBUG"] = True
 github = GitHub(app)
 
 #Database setup
-from sqlalchemy import create_engine, Column, Integer, String, Table, Binary
+from sqlalchemy import create_engine, Column, Integer, String, Table, Binary, or_
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -79,6 +79,36 @@ def getfeatures():
     user = User.query.filter_by(github_id=g.user.github_id).first()
     if user.embedding:
         return str(np.frombuffer(user.embedding))
+
+@app.route('/swipe/<pair_id>/<like>', methods=['GET', 'POST']) #later turn this into just a post route
+def swipe(pair_id, like):
+    liked = 1 if (like == "true") else -1 #sort of a boolean lol
+    if not g.user:
+        return "not logged in"
+    
+    pair = Pair.query().filter_by(hash=pair_id).first()
+    if not pair:
+        return "pair not found"
+    if g.user.id == pair.user_1:
+        pair.u1_liked = liked
+    elif g.user.id == pair.user_2:
+        pair.u2_liked = liked
+    else:
+        return "you're not part of this pair"
+    
+    db_session.commit()
+
+    return "success"
+
+@app.route('/getpairs/<page>')
+@app.route('/getpairs')
+def get_pairs(page=0):
+    #TODO: handle pages later
+    user_id = g.user.id
+    pairs = Pair.query.filter(or_(Pair.user_1 == user_id, Pair.user_2 == user_id)).all()
+    return str([pair.hash for pair in pairs])
+
+
 
 @app.route('/adu/<name>')
 def add_dummy_user_by_name(name):
