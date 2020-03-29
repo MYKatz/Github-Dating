@@ -1,6 +1,6 @@
 #Basic flask app
 
-from flask import Flask, request, url_for, g, session, redirect
+from flask import Flask, request, url_for, g, session, redirect, send_from_directory
 from flask import render_template_string, jsonify
 from flask_github import GitHub #Github authentication
 
@@ -8,6 +8,8 @@ import numpy as np
 import asyncio
 
 from base64 import b64decode
+
+import os
 
 from vars import *
 from utils import remove_non_alphanumeric, form_language_feature_vector
@@ -17,7 +19,7 @@ from schemas import User, Pair, engine, db_session, Base
 
 from nearest import get_neighbors, make_pairs #you will need to comment out this line when you first initialize the database. It'll break if we don't have any users lol.
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='../build')
 
 #Environment variables
 app.config["GITHUB_CLIENT_ID"] = GITHUB_ID
@@ -57,10 +59,25 @@ def token_getter():
 
 
 #Actual routes begin here
+"""
 @app.route("/index")
 @app.route('/')
 def index():
     return redirect("http://localhost:3000", 302)
+"""
+
+@app.route("/")
+def serve():
+    """serves React App"""
+    return send_from_directory(app.static_folder, "index.html")
+
+
+@app.route("/<path:path>")
+def static_proxy(path):
+    """static folder serve"""
+    file_name = path.split("/")[-1]
+    dir_name = os.path.join(app.static_folder, "/".join(path.split("/")[:-1]))
+    return send_from_directory(dir_name, file_name)
 
 @app.route('/currentuser')
 def get_current_user():
