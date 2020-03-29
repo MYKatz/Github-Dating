@@ -7,14 +7,31 @@ import {
   Col,
   Container
 } from "reactstrap";
+import GithubButton from 'react-github-login-button'
+
 
 import Navbar from "./components/navbar";
 import ProfCard from "./components/profile_card";
+import MyProfile from "./components/my_profile";
+
+function Login() {
+  return(
+    <div className="text-center centercontainer">
+      <div className="center text-center">
+        <h1>Please log in with Github to continue</h1>
+        <a href="http://localhost:5000/login">
+          <GithubButton style={{marginLeft: "25px"}}/>
+        </a>
+      </div>
+    </div>
+  )
+}
 
 function App() {
 
   const [isLoggedIn, setLoggedIn] = useState(false);
   const [username, setUsername] = useState("")
+  const [user, setUser] = useState({});
 
   useEffect(() => {
     async function fetchData() {
@@ -27,6 +44,7 @@ function App() {
       }
       console.log("HELLO!")
       console.log(user["name"])
+      setUser(user);
     }
 
     fetchData();
@@ -42,7 +60,9 @@ function App() {
 
               <div className="center maincard" style={{height: "70%", width: "80%", marginBottom: "3vh"}}>
 
-                <ProfCard githubId={"23515048"} />
+                {!isLoggedIn && <Login />}
+                {isLoggedIn && user.onboarded && <ProfCard githubId={"23515048"} />}
+                {isLoggedIn && !user.onboarded && <MyProfile githubId={"23515048"} /> }
 
               </div>
 

@@ -11,6 +11,7 @@
     "gh-pinned-repos": "^1.0.1",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
+    "react-github-login-button": "^1.0.1",
     "react-scripts": "3.4.1",
     "reactstrap": "^8.4.1",
     "styled-components": "^5.0.1"

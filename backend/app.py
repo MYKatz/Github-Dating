@@ -59,7 +59,7 @@ def token_getter():
 @app.route("/index")
 @app.route('/')
 def index():
-    return 'Hello, World!'
+    return redirect("http://localhost:3000", 302)
 
 @app.route('/currentuser')
 def get_current_user():
@@ -71,7 +71,8 @@ def get_current_user():
     return jsonify({
         "loggedIn": (g.user is not None),
         "name": g.user.name,
-        "id": g.user.id
+        "id": g.user.id,
+        "onboarded": (g.user.embedding is not None)
     })
 
 @app.route("/makefeatures")
@@ -120,7 +121,19 @@ def get_pairs(page=0):
     #TODO: handle pages later
     user_id = g.user.id
     pairs = Pair.query.filter(or_(Pair.user_1 == user_id, Pair.user_2 == user_id)).all()
-    return str([pair.hash for pair in pairs])
+    out = []
+    for pair in pairs:
+        other_user = pair.user_1
+        if other_user == user_id:
+            other_user = pair.user_2
+
+        other = User.query.filter_by(id=other_user).first()
+
+        out.append({
+            "other": other.github_id,
+            "hash": pair.hash
+        })
+    return jsonify(out)
 
 
 
