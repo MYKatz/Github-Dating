@@ -46,4 +46,4 @@ class Pair(Base):
         self.user_2 = u2
         self.u1_liked = 0
         self.u2_liked = 0
-        self.hash = hash(f'{min(u1, u2)}-{max(u1, u2)}') #lower one always first
+        self.hash = str(hash(f'{min(u1, u2)}-{max(u1, u2)}')) #lower one always first

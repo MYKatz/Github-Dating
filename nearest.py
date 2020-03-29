@@ -9,7 +9,7 @@ import os
 from annoy import AnnoyIndex
 
 from vars import DATABASE_URI
-from schemas import User
+from schemas import User, Pair
 
 engine = create_engine(DATABASE_URI) #from vars
 db_session = scoped_session(sessionmaker(autocommit=False,
@@ -25,11 +25,14 @@ if not os.path.exists(model_dir):
     os.makedirs(model_dir)
 
 #load model
-u = User.query.one()
+u = User.query.all()[0]
 #we assume that dimensionality will be the same for all users
 dim = np.frombuffer(u.embedding).size #dimensionality
-index = AnnoyIndex(dim, 'euclidean')
-index.load(model_path)
+if os.path.exists(model_path):
+    index = AnnoyIndex(dim, 'euclidean')
+    index.load(model_path)
+else:
+    print("No knn model found")
 
 
 def create_new_index():
@@ -67,7 +70,7 @@ def get_neighbors(id, k):
             return [] #hopefully we handle this on the front-end, only allowing users with their embeddings to see potential matches
 
 def make_pairs(id):
-    k = max(50, min(index.get_n_items() / 5, 200)) #eh idk if this is necessary lol
+    k = min(index.get_n_items() - 1 , max(50, min(index.get_n_items() / 5, 200))) #eh idk if this is necessary lol
     last_k = 0
     found = 0
     i = 0
@@ -75,16 +78,15 @@ def make_pairs(id):
         i += 1
         neighbors = get_neighbors(id, k)[last_k:]
         for neighbor in neighbors:
-            p = Pair.query.filter_by(hash=f'{min(id, neighbor)}-{max(id, neighbor)}').first()
+            if neighbor == id:
+                continue
+            p = Pair.query.filter_by(hash=str(hash(f'{min(id, neighbor)}-{max(id, neighbor)}'))).first()
+            print(p)
             if not p:
                 found += 1
                 new_pair = Pair(min(id, neighbor), max(id, neighbor))
                 db_session.add(new_pair)
-
-    db_session.commit()
-
-
-        
+                db_session.commit()
     
 
 if __name__ == "__main__":

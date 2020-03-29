@@ -14,7 +14,7 @@ from doc2vec import doc2vec
 
 from schemas import User, Pair, engine, db_session, Base
 
-from nearest import get_neighbors
+from nearest import get_neighbors #you will need to comment out this line when you first initialize the database. It'll break if we don't have any users lol.
 
 app = Flask(__name__)
 
@@ -80,6 +80,12 @@ def getfeatures():
     if user.embedding:
         return str(np.frombuffer(user.embedding))
 
+@app.route('/adu/<name>')
+def add_dummy_user_by_name(name):
+    print(f'Adding user: {name}')
+    add_user(name)
+    print("Success!")
+    return "success!"
 
 @app.route('/profile')
 def getProfile():
@@ -175,6 +181,35 @@ def make_feature_vectors():
 
     return np.concatenate((readme_features, lang_features))
 
+def add_user(github_name):
+    """ Manually add users -- to populate initial stuff. Should not really be used in prod. """
+
+    import random
+
+    user = User(str(hash(random.random())))
+    github_user = github.get(f'/users/{github_name}')
+
+    user.github_id = github_user['id']
+    user.github_login = github_user['login']
+    user.name = github_user["name"]
+    user.org = github_user["company"]
+    user.blog = github_user["blog"]
+    user.email = github_user["email"]
+
+    #oof code duplication :(
+    repos = github.get(github_user["repos_url"])
+    repos, langs = [repo["url"] for repo in repos], [repo["language"] for repo in repos]
+    big_doc = make_doc_from_repos(repos)
+
+    lang_features = form_language_feature_vector(langs)
+    readme_features = doc2vec(big_doc)
+
+    feature_vec = np.concatenate((readme_features, lang_features))
+
+    user.embedding = feature_vec.tobytes()
+
+    db_session.add(user)
+    db_session.commit()
 
 
 if __name__ == "__main__":

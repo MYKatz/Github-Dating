@@ -48,4 +48,4 @@ def form_language_feature_vector(langs):
             counts[lang_to_ind[lang.lower()]] += 1
             total += 1
     
-    return [count / total for count in counts]
+    return [count / max(1,total) for count in counts]
