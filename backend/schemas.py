@@ -27,6 +27,7 @@ class User(Base):
     org = Column(String(255))
     blog = Column(String(255))
     email = Column(String(255))
+    discord = Column(String(255))
     embedding = Column(Binary)
 
     def __init__(self, github_access_token):

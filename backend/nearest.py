@@ -62,7 +62,7 @@ def get_neighbors(id, k):
     if id < index.get_n_items(): #the vector has been indexed!
         return index.get_nns_by_item(id, k) #k nearest neighbors
     else: #this user has not been indexed yet, we need to use their actual vector
-        usr = User.query.get(id=id).first()
+        usr = User.query.filter_by(id=id).first()
         if usr.embedding:
             v = np.frombuffer(usr.embedding) 
             return index.get_nns_by_vector(v, k)
@@ -70,6 +70,8 @@ def get_neighbors(id, k):
             return [] #hopefully we handle this on the front-end, only allowing users with their embeddings to see potential matches
 
 def make_pairs(id):
+    index = AnnoyIndex(dim, 'euclidean')
+    index.load(model_path)
     k = min(index.get_n_items() - 1 , max(50, min(index.get_n_items() / 5, 200))) #eh idk if this is necessary lol
     last_k = 0
     found = 0

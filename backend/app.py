@@ -5,6 +5,7 @@ from flask import render_template_string, jsonify
 from flask_github import GitHub #Github authentication
 
 import numpy as np
+import asyncio
 
 from base64 import b64decode
 
@@ -14,7 +15,7 @@ from doc2vec import doc2vec
 
 from schemas import User, Pair, engine, db_session, Base
 
-from nearest import get_neighbors #you will need to comment out this line when you first initialize the database. It'll break if we don't have any users lol.
+from nearest import get_neighbors, make_pairs #you will need to comment out this line when you first initialize the database. It'll break if we don't have any users lol.
 
 app = Flask(__name__)
 
@@ -27,7 +28,7 @@ app.config["DEBUG"] = True
 github = GitHub(app)
 
 #Database setup
-from sqlalchemy import create_engine, Column, Integer, String, Table, Binary, or_
+from sqlalchemy import create_engine, Column, Integer, String, Table, Binary, or_, and_
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -75,16 +76,18 @@ def get_current_user():
         "onboarded": (g.user.embedding is not None)
     })
 
-@app.route("/makefeatures")
-def makefeatures():
+@app.route("/onboard/<discordname>")
+def onboard(discordname):
     try:
         user = User.query.filter_by(github_id=g.user.github_id).first()
         if user.embedding:
             return "User already has embedding"
         features = make_feature_vectors()
         user.embedding = features.tobytes() #convert to binary data format
+        user.discord = discordname.replace("_HASHTAG_", "#")
         db_session.commit()
-        return "Successfully generated feature vector"
+        make_pairs(user.id)
+        return "Success! Welcome aboard!"
     except:
         return "Feature vector generation failed"
 
@@ -101,7 +104,7 @@ def swipe(pair_id, like):
     if not g.user:
         return "not logged in"
     
-    pair = Pair.query().filter_by(hash=pair_id).first()
+    pair = Pair.query.filter_by(hash=pair_id).first()
     if not pair:
         return "pair not found"
     if g.user.id == pair.user_1:
@@ -120,7 +123,7 @@ def swipe(pair_id, like):
 def get_pairs(page=0):
     #TODO: handle pages later
     user_id = g.user.id
-    pairs = Pair.query.filter(or_(Pair.user_1 == user_id, Pair.user_2 == user_id)).all()
+    pairs = Pair.query.filter(or_(and_(Pair.user_1 == user_id, Pair.u1_liked == 0), and_(Pair.user_2 == user_id, Pair.u2_liked == 0))).all()
     out = []
     for pair in pairs:
         other_user = pair.user_1
@@ -128,11 +131,11 @@ def get_pairs(page=0):
             other_user = pair.user_2
 
         other = User.query.filter_by(id=other_user).first()
-
-        out.append({
-            "other": other.github_id,
-            "hash": pair.hash
-        })
+        if other is not None:
+            out.append({
+                "other": other.github_id,
+                "hash": pair.hash
+            })
     return jsonify(out)
 
 
@@ -151,6 +154,27 @@ def getProfile():
 @app.route('/login')
 def login():
     return github.authorize()
+
+@app.route('/matches')
+def get_matches():
+    user_id = g.user.id
+    pairs = Pair.query.filter(and_(Pair.u1_liked == 1, Pair.u2_liked == 1, or_(Pair.user_1 == user_id, Pair.user_2 == user_id))).all()
+    out = []
+    for pair in pairs:
+        other_user = pair.user_1
+        if other_user == user_id:
+            other_user = pair.user_2
+
+        other = User.query.filter_by(id=other_user).first()
+
+        out.append({
+            "other": other.github_id,
+            "other_disc": other.discord,
+            "github_login": other.github_login,
+            "name": other.name,
+            "hash": pair.hash
+        })
+    return jsonify(out)
 
 @app.route('/login-callback')
 @github.authorized_handler
@@ -252,6 +276,7 @@ def add_user(github_name):
     user.org = github_user["company"]
     user.blog = github_user["blog"]
     user.email = github_user["email"]
+    user.discord = f'{github_name}#{random.randint(1000,9999)}'
 
     #oof code duplication :(
     repos = github.get(github_user["repos_url"])
@@ -265,9 +290,17 @@ def add_user(github_name):
 
     user.embedding = feature_vec.tobytes()
 
+
     db_session.add(user)
     db_session.commit()
 
+    user = User.query.filter_by(github_id=github_user['id']).first()
+    print(user.id)
+    make_pairs(user.id)
+
+async def async_make_pairs(id):
+    asyncio.sleep(5)
+    make_pairs(id)
 
 if __name__ == "__main__":
     init_db()
