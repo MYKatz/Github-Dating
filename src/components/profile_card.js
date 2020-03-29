@@ -4,6 +4,9 @@
 import React, {useEffect, useState} from "react";
 import ghPinnedRepos from 'gh-pinned-repos';
 
+import {ReactComponent as Heart} from "../img/heart.svg";
+import {ReactComponent as X} from "../img/x.svg";
+
 import {
     Row,
     Col,
@@ -41,7 +44,7 @@ const ProfileCard = (props) => {
           var pinned = await (await fetch(`https://gh-pinned-repos.now.sh/?username=${user.login}`)).json(); //we'll rely on this random site for now lmao
           //TODO: move to something more robust
           console.log(pinned)
-          setFeatured(pinned.slice(0,3));
+          setFeatured(pinned.slice(0,4));
           
           console.log(user)
 
@@ -80,7 +83,11 @@ const ProfileCard = (props) => {
                                 <RepoBox owner={repo.owner} repo={repo.repo} description={repo.description}/>
                             )
                         }
+
+                        <Heart style={{float: "right"}} className="pointer"/> <X style={{float: "right"}} className="pointer" />
                     </div>
+
+                    
                 </Col>
             </Row>
         </div>
