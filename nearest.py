@@ -66,6 +66,27 @@ def get_neighbors(id, k):
         else:
             return [] #hopefully we handle this on the front-end, only allowing users with their embeddings to see potential matches
 
+def make_pairs(id):
+    k = max(50, min(index.get_n_items() / 5, 200)) #eh idk if this is necessary lol
+    last_k = 0
+    found = 0
+    i = 0
+    while found < 15 and i < 5 and k < index.get_n_items(): #loop until we get a satisfactory amount (15 for now), or for 5 iterations
+        i += 1
+        neighbors = get_neighbors(id, k)[last_k:]
+        for neighbor in neighbors:
+            p = Pair.query.filter_by(hash=f'{min(id, neighbor)}-{max(id, neighbor)}').first()
+            if not p:
+                found += 1
+                new_pair = Pair(min(id, neighbor), max(id, neighbor))
+                db_session.add(new_pair)
+
+    db_session.commit()
+
+
+        
+    
+
 if __name__ == "__main__":
     print("Creating index...")
     n = create_new_index()
